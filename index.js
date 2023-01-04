@@ -27,8 +27,14 @@ async function main() {
   //   await sequelize.connect();
   // })();
 
+  const scores = [{ name: 'charly', score: 100 }];
+
   app.get('/version', (req, res) => {
     res.status(200).json({ version: '0.0.1' });
+  });
+
+  app.get('/scores', (req, res) => {
+    res.status(200).json({ scores });
   });
 
   app.post('/name/:name/score/:score', (req, res) => {
@@ -36,9 +42,14 @@ async function main() {
       console.log(req.params.name);
       console.log(req.params.score);
 
-      
+      const newscore = {
+        name: req.params.name,
+        score: parseInt(req.params.score),
+      };
 
-      res.status(200).json({ score: req.body });
+      scores.push(newscore);
+
+      res.status(200).json(newscore);
     } catch (error) {
       res.status(400).json({ error });
     }
