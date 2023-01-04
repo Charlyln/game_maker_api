@@ -62,8 +62,8 @@ async function main() {
     res.status(200).send('GAME MAKER API');
   });
 
-  httpServer.listen(8080, () => {
-    console.log(`App listening at port:${8080}`);
+  httpServer.listen(process.env.PORT || 8080, () => {
+    console.log(`App listening at port:${process.env.PORT || 8080}`);
   });
 }
 
