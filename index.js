@@ -20,6 +20,9 @@ async function main() {
 
   app.use(cors());
   app.use(express.json());
+  app.use(express.static('public'));
+  app.use(express.urlencoded({ extended: true }));
+
   // app.use(streamItemRoutes);
 
   // (async () => {
@@ -55,7 +58,7 @@ async function main() {
     }
   });
 
-  app.get('*', (req, res) => {
+  app.get('/', (req, res) => {
     res.status(200).send('GAME MAKER API');
   });
 
