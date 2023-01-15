@@ -31,7 +31,7 @@ async function main() {
   //   await sequelize.connect();
   // })();
 
-  const scores = [{ name: 'charly', score: 0 }];
+  const scores = [{ name: 'charly', score: 21 }];
 
   app.get('/version', (req, res) => {
     res.status(200).json({ version: '0.0.1' });
