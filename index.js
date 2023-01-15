@@ -8,6 +8,7 @@ const http = require('http');
 // require('./db/models/associations');
 
 const { default: axios } = require('axios');
+const getTimecode = require('./timecode');
 
 // const db = require('./db');
 // const sequelize = require('./sequelize');
@@ -51,15 +52,17 @@ async function main() {
       );
 
       if (index !== -1) {
-        if (parseInt(req.params.score) > scores[index].score) {
-          scores[index].score = parseInt(req.params.score);
+        if (parseInt(req.params.score) < scores[index].score) {
+          const newScore = getTimecode(parseInt(req.params.score));
+          scores[index].score = newScore;
         }
 
         res.status(200).json(scores[index]);
       } else {
+        const newScore = getTimecode(parseInt(req.params.score));
         const newscore = {
           name: req.params.name,
-          score: parseInt(req.params.score),
+          score: newScore,
         };
 
         scores.push(newscore);
