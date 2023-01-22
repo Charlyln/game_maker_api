@@ -108,7 +108,7 @@ server.on('listening', () => {
   console.log(`server listening ${address.address}:${address.port}`);
 });
 
-server.bind(process.env.PORT || 8080, '192.168.1.12');
+server.bind(process.env.PORT || 8080);
 
 // //Prep the server
 // const WebSocketServer = require('ws');
