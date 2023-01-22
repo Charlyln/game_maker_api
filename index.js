@@ -109,7 +109,7 @@ server.on('listening', () => {
 });
 
 console.log(process.env);
-server.bind(process.env.PORT || 8080);
+server.bind(process.env.PORT || 8080, 'https://git.heroku.com/pocwsserver.git');
 
 // //Prep the server
 // const WebSocketServer = require('ws');
