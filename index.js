@@ -108,6 +108,7 @@ server.on('listening', () => {
   console.log(`server listening ${address.address}:${address.port}`);
 });
 
+console.log(process.env);
 server.bind(process.env.PORT || 8080);
 
 // //Prep the server
