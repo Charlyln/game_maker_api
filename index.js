@@ -121,7 +121,7 @@ var app = express();
 const secure = false;
 
 //Launch the server up
-var port = 8080;
+var port = process.env.PORT || 8080;
 app.use(express.static(__dirname + '/'));
 if (!secure) {
   var httpserver = http.createServer(app);
