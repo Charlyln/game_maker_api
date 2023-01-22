@@ -17,6 +17,7 @@
   "dependencies": {
     "axios": "^0.27.2",
     "cors": "^2.8.5",
+    "dgram": "^1.0.1",
     "express": "^4.18.2",
     "sequelize": "^6.25.8",
     "sqlite3": "^5.1.2",
