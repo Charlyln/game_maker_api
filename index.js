@@ -72,6 +72,26 @@ wss.on('connection', (ws) => {
 
         break;
 
+      case 'bullet':
+        messageEvent = 'bullet';
+
+        const bulletIndex = clients.findIndex((client) => client.id === id);
+
+        clients[bulletIndex].x = data.x;
+        clients[bulletIndex].y = data.y;
+        clients[bulletIndex].mouse_x = data.mouse_x;
+        clients[bulletIndex].mouse_y = data.mouse_y;
+
+        message = { event: messageEvent, player: clients[bulletIndex] };
+
+        console.log(message);
+
+        wss.clients.forEach((client) => {
+          client.send(JSON.stringify(message));
+        });
+
+        break;
+
       case 'disconnect':
         const index = clients.findIndex((client) => client.id === id);
 
