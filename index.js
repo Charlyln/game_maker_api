@@ -1,85 +1,51 @@
-const express = require('express');
-const cors = require('cors');
-const path = require('path');
-const fs = require('fs');
-const http = require('http');
+const dgram = require('dgram');
+const { Buffer } = require('node:buffer');
 
-// const streamItemRoutes = require('./db/routes/streamItem.route');
-// require('./db/models/associations');
+const server = dgram.createSocket('udp4');
 
-const { default: axios } = require('axios');
-const getTimecode = require('./timecode');
+const message = Buffer.from('ping');
 
-// const db = require('./db');
-// const sequelize = require('./sequelize');
+let clients = [];
 
-async function main() {
-  const httpServer = http.createServer();
+server.on('message', (msg, info) => {
+  const parsedMsg = JSON.parse(msg);
 
-  const app = express();
-  httpServer.on('request', app);
+  const { id, event, ...data } = parsedMsg;
 
-  app.use(cors());
-  app.use(express.json());
-  app.use(express.static('public'));
-  app.use(express.urlencoded({ extended: true }));
+  console.log(`receive event [${event}] from client [${id}] data:`, data);
 
-  // app.use(streamItemRoutes);
+  switch (event) {
+    case 'connect':
+      clients.push({ id });
+      console.table(clients);
+      break;
 
-  // (async () => {
-  //   await db.connect();
-  //   await sequelize.connect();
-  // })();
+    case 'move':
+      break;
 
-  const scores = [{ name: 'charly', score: '03:25' }];
+    case 'disconnect':
+      const filtered = clients.filter((client) => client.id !== id);
+      clients = filtered;
+      console.table(clients);
 
-  app.get('/version', (req, res) => {
-    res.status(200).json({ version: '0.0.1' });
-  });
+      break;
 
-  app.get('/scores', (req, res) => {
-    const sorted = scores.sort((a, b) => b.score - a.score);
-    res.status(200).json({ scores: sorted });
-  });
+    default:
+      console.log('received unknow event', parsedMsg);
+      break;
+  }
 
-  app.post('/name/:name/score/:score', (req, res) => {
-    try {
-      console.log(req.params.name);
-      console.log(req.params.score);
+  server.send(message, info.port, info.address);
+});
 
-      const index = scores.findIndex(
-        (obj) => obj.name.toLowerCase() === req.params.name.toLowerCase()
-      );
+server.on('error', (err) => {
+  console.error(`server error:\n${err.stack}`);
+  server.close();
+});
 
-      if (index !== -1) {
-        if (parseInt(req.params.score) < scores[index].score) {
-          const newScore = getTimecode(parseInt(req.params.score));
-          scores[index].score = newScore;
-        }
+server.on('listening', () => {
+  const address = server.address();
+  console.log(`server listening ${address.address}:${address.port}`);
+});
 
-        res.status(200).json(scores[index]);
-      } else {
-        const newScore = getTimecode(parseInt(req.params.score));
-        const newscore = {
-          name: req.params.name,
-          score: newScore,
-        };
-
-        scores.push(newscore);
-        res.status(200).json(newscore);
-      }
-    } catch (error) {
-      res.status(400).json({ error });
-    }
-  });
-
-  app.get('/', (req, res) => {
-    res.status(200).send('GAME MAKER API');
-  });
-
-  httpServer.listen(process.env.PORT || 8080, () => {
-    console.log(`App listening at port:${process.env.PORT || 8080}`);
-  });
-}
-
-main();
+server.bind(process.env.PORT || 8080);
