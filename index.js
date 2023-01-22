@@ -197,19 +197,23 @@ const httpServer = http.createServer(app);
 const wss = new ws.Server({ server: httpServer });
 wss.on('connection', (ws) => {
   console.log('Client connected');
+
   ws.onmessage = (event) => {
-    const msg = JSON.parse(event.data);
-    console.log(msg.x + ', ' + msg.y);
-    // Send an answer
-    const resp = {
-      x: msg.x,
-      y: msg.y,
-    };
-    ws.send(JSON.stringify(resp));
+    console.log(typeof event.data);
+
+    var temp = event.data.toString();
+
+    var mySubString = temp.substring(
+      temp.indexOf('{'),
+      temp.lastIndexOf('}') + 1
+    );
+
+    console.log(JSON.parse(mySubString));
+    // ws.send(JSON.stringify(resp));
   };
 });
 
-const port = process.env.PORT || 3000;
+const port = process.env.PORT || 80;
 httpServer.listen(port, () => {
   console.log('Server started. Port: ', port);
 });
