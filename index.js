@@ -111,73 +111,105 @@
 // });
 
 //Prep the server
-const WebSocketServer = require('ws');
+// const WebSocketServer = require('ws');
+// const http = require('http');
+// const https = require('https');
+// const fs = require('fs');
+// var express = require('express');
+// var app = express();
+
+// const secure = false;
+
+// //Launch the server up
+// var port = process.env.PORT || 8080;
+// app.use(express.static(__dirname + '/'));
+// if (!secure) {
+//   var httpserver = http.createServer(app);
+// } else {
+//   var options = {
+//     cert: fs.readFileSync('ssl/server.crt'),
+//     key: fs.readFileSync('ssl/server.key'),
+//   };
+//   var httpserver = https.createServer(options, app);
+// }
+// httpserver.listen(port, () => {
+//   console.log('listening...', port);
+// });
+// var server = new WebSocketServer.Server({ server: httpserver });
+
+// //Create the client sockets on connection
+// server.on('connection', (socket) => {
+//   //Execute on connection
+//   console.log(`Player Connected!`);
+//   // this.player = undefined;
+
+//   //Execute when recieving data
+//   socket.on('message', (raw_data) => {
+//     console.log(`Received: ${raw_data}`);
+
+//     try {
+//       const string = raw_data.toString();
+
+//       var mySubString = string.substring(
+//         string.indexOf('{'),
+//         string.lastIndexOf('}') + 1
+//       );
+
+//       let data = JSON.parse(mySubString);
+//       console.log(`parsed:`, data);
+//     } catch (error) {}
+
+//     //Parse the data, execute the event.
+//     // let data = JSON.parse(raw_data);
+//     // console.log(`parsed:`, data);
+//     // let event = new Event(data.type, socket, data);
+//     // event.Execute();
+//   });
+
+//   //Execute on disconnect
+//   socket.on('close', () => {
+//     console.log('Player disconnected!');
+
+//     // //Disconnect the player
+//     // if (socket.player != undefined) {
+//     //   socket.player.Disconnect();
+//     // }
+//   });
+
+//   //Execute on error
+//   socket.onerror = (error) => {
+//     console.log('Client Error: ${error}');
+//   };
+// });
+
+const express = require('express');
 const http = require('http');
-const https = require('https');
-const fs = require('fs');
-var express = require('express');
-var app = express();
+const ws = require('ws');
+const path = require('path');
 
-const secure = false;
-
-//Launch the server up
-var port = process.env.PORT || 8080;
-app.use(express.static(__dirname + '/'));
-if (!secure) {
-  var httpserver = http.createServer(app);
-} else {
-  var options = {
-    cert: fs.readFileSync('ssl/server.crt'),
-    key: fs.readFileSync('ssl/server.key'),
-  };
-  var httpserver = https.createServer(options, app);
-}
-httpserver.listen(port, () => {
-  console.log('listening...', port);
+const app = express();
+app.use(express.static(path.join(__dirname, './public')));
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'index.html'));
 });
-var server = new WebSocketServer.Server({ server: httpserver });
 
-//Create the client sockets on connection
-server.on('connection', (socket) => {
-  //Execute on connection
-  console.log(`Player Connected!`);
-  // this.player = undefined;
-
-  //Execute when recieving data
-  socket.on('message', (raw_data) => {
-    console.log(`Received: ${raw_data}`);
-
-    try {
-      const string = raw_data.toString();
-
-      var mySubString = string.substring(
-        string.indexOf('{'),
-        string.lastIndexOf('}') + 1
-      );
-
-      let data = JSON.parse(mySubString);
-      console.log(`parsed:`, data);
-    } catch (error) {}
-
-    //Parse the data, execute the event.
-    // let data = JSON.parse(raw_data);
-    // console.log(`parsed:`, data);
-    // let event = new Event(data.type, socket, data);
-    // event.Execute();
-  });
-
-  //Execute on disconnect
-  socket.on('close', () => {
-    console.log('Player disconnected!');
-
-    // //Disconnect the player
-    // if (socket.player != undefined) {
-    //   socket.player.Disconnect();
-    // }
-  });
-
-  //Execute on error
-  socket.onerror = (error) => {
-    console.log('Client Error: ${error}');
+const httpServer = http.createServer(app);
+const wss = new ws.Server({ server: httpServer });
+wss.on('connection', (ws) => {
+  console.log('Client connected');
+  ws.onmessage = (event) => {
+    const msg = JSON.parse(event.data);
+    console.log(msg.x + ', ' + msg.y);
+    // Send an answer
+    const resp = {
+      x: msg.x,
+      y: msg.y,
+    };
+    ws.send(JSON.stringify(resp));
   };
+});
+
+const port = process.env.PORT || 3000;
+httpServer.listen(port, () => {
+  console.log('Server started. Port: ', port);
 });
