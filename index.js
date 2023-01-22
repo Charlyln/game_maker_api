@@ -43,9 +43,9 @@
 
 //       console.log(clients);
 
-//       clients.forEach((client) => {
-//         server.send(buffer, client.port, client.address);
-//       });
+// //       clients.forEach((client) => {
+// //         server.send(buffer, client.port, client.address);
+// //       });
 
 //       break;
 
@@ -65,9 +65,9 @@
 //       message = { event: messageEvent, player: clients[moveIndex] };
 //       buffer = Buffer.from(JSON.stringify(message));
 
-//       clients.forEach((client) => {
-//         server.send(buffer, client.port, client.address);
-//       });
+// //       clients.forEach((client) => {
+// //         server.send(buffer, client.port, client.address);
+// //       });
 
 //       break;
 
@@ -86,9 +86,9 @@
 
 //       console.log(clients);
 
-//       clients.forEach((client) => {
-//         server.send(buffer, client.port, client.address);
-//       });
+// //       clients.forEach((client) => {
+// //         server.send(buffer, client.port, client.address);
+// //       });
 
 //       break;
 
@@ -195,21 +195,115 @@ app.get('/', (req, res) => {
 
 const httpServer = http.createServer(app);
 const wss = new ws.Server({ server: httpServer });
+
+let clients = [];
+
 wss.on('connection', (ws) => {
   console.log('Client connected');
 
-  ws.onmessage = (event) => {
-    console.log(typeof event.data);
-
-    var temp = event.data.toString();
+  ws.onmessage = (wsevent) => {
+    var temp = wsevent.data.toString();
 
     var mySubString = temp.substring(
       temp.indexOf('{'),
       temp.lastIndexOf('}') + 1
     );
 
-    console.log(JSON.parse(mySubString));
+    const parsed = JSON.parse(mySubString);
+
+    const { id, event, ...data } = parsed;
+
+    console.log(`receive event [${event}] from client [${id}] data:`, data);
+
+    let messageEvent;
+    let message;
+    let buffer;
+
+    switch (event) {
+      case 'connect':
+        clients.push({
+          id,
+          x: data.x,
+          y: data.y,
+          name: data.name,
+          color: data.color,
+          // port: info.port,
+          // address: info.address,
+        });
+
+        messageEvent = 'connect';
+
+        message = { event: messageEvent, players: clients };
+        buffer = Buffer.from(JSON.stringify(message));
+
+        console.log(clients);
+
+        // clients.forEach((client) => {
+        //   server.send(buffer, client.port, client.address);
+        // });
+
+        wss.clients.forEach((client) => {
+          client.send(JSON.stringify(message));
+        });
+
+        break;
+
+      case 'move':
+        // clients[0].x = data.x;
+        // clients[0].y = data.y;
+
+        messageEvent = 'move';
+
+        const moveIndex = clients.findIndex((client) => client.id === id);
+
+        console.log(moveIndex);
+        clients[moveIndex].x = data.x;
+        clients[moveIndex].y = data.y;
+        console.log(clients);
+
+        message = { event: messageEvent, player: clients[moveIndex] };
+        buffer = Buffer.from(JSON.stringify(message));
+
+        //   server.send(buffer, client.port, client.address);
+        // });
+        // clients.forEach((client) => {
+
+        wss.clients.forEach((client) => {
+          client.send(JSON.stringify(message));
+        });
+
+        break;
+
+      case 'disconnect':
+        const index = clients.findIndex((client) => client.id === id);
+
+        messageEvent = 'disconnect';
+
+        message = { event: messageEvent, index, player: clients[index] };
+        buffer = Buffer.from(JSON.stringify(message));
+
+        if (index > -1) {
+          // only splice array when item is found
+          clients.splice(index, 1); // 2nd parameter means remove one item only
+        }
+
+        console.log(clients);
+
+        // clients.forEach((client) => {
+        //   server.send(buffer, client.port, client.address);
+        // });
+
+        break;
+
+      default:
+        console.log('received unknow event', parsed);
+        break;
+    }
     // ws.send(JSON.stringify(resp));
+  };
+
+  ws.onclose = (event) => {
+    console.log('close socket');
   };
 });
 
